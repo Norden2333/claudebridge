@@ -52,7 +52,8 @@ test('real host retries an unavailable local proxy and stops without authenticat
       while(data.length>=4){const size=data.readUInt32LE();if(data.length<size+4)break;const m=JSON.parse(data.subarray(4,size+4));data=data.subarray(size+4);
         if(m.id==='read-local-test')readReply(m);
         if(m.event==='status'&&m.relay.status==='starting')starts++;
-        if(m.event==='status'&&m.relay.retryAt){ failures.push(m.relay.retryAt);if(failures.length===2){clearTimeout(timer);resolve();} }
+        // Countdown/status updates can repeat one scheduled retry; observe two distinct deadlines.
+        if(m.event==='status'&&m.relay.retryAt&&m.relay.retryAt!==failures.at(-1)){ failures.push(m.relay.retryAt);if(failures.length===2){clearTimeout(timer);resolve();} }
       }
     });
   });
