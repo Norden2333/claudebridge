@@ -1,0 +1,16 @@
+companion/native-host.json
+companion/native-launcher*
+*.log
+
+node_modules/
+runtime/
+安装Claude文件连接.exe
+
+# Local secrets and runtime state (never commit)
+.env
+.env.*
+!.env.example
+device.json
+device.json.bak
+settings.json
+host.lock

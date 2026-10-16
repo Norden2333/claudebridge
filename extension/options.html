@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Claude 文件连接设置</title><link rel="stylesheet" href="style.css"></head><body><main>
+<p class="eyebrow">ClaudeBridge · 0.6.0</p><h1>选好文件夹，之后自动连接</h1><p><a href="onboarding.html" target="_blank">首次使用：一步步检查连接</a></p>
+<p>保存一次，之后打开 Claude 网页就自动连接。Cowork 默认可在关闭 Claude 页面后保持在线，可在下方关闭；退出 Chrome 后停止。</p>
+<div class="status-card" aria-live="polite"><p id="local">正在检查本机连接…</p><p id="remote"></p><p id="connectionHelp" class="hint"></p></div>
+<section id="installHelp" hidden><h2>先安装配套本机程序</h2><p>浏览器扩展需要本机程序才能访问文件。请先运行安装包中对应系统的安装入口，再点击下方“重新检查”。如果已安装，请检查是否有另一个 Chrome 配置文件占用了连接。</p><button id="retry">重新检查</button></section>
+<form id="settingsForm"><fieldset id="settingsFields">
+<nav class="setup-path" aria-label="设置步骤">① 选择文件夹 → ② 选择用途与权限 → ③ 同意并保存 → ④ 验证连接</nav>
+<label for="folder">工作文件夹</label><div class="row"><input id="folder" placeholder="请选择文件夹" autocomplete="off"><button id="choose" type="button">选择文件夹</button></div>
+<p class="hint">只授权这个文件夹及其子文件夹，不是整个磁盘。选择后点击“保存设置”才生效。</p><p id="effectiveFolder" class="hint path" role="status"></p>
+
+<label for="usageMode">你主要在哪里使用？</label><select id="usageMode"><option value="chat">Claude 网页 Chat</option><option value="cowork">Chat 和 Cowork</option></select>
+<label for="usagePreset">文件使用方式</label><select id="usagePreset"><option value="custom">保留当前设置</option><option value="read">只读：查阅资料，不修改文件</option><option value="write">读写并自动保存：直接更新原文件</option></select><p class="hint">选择只填写下面选项，点击“保存设置”后才生效。</p>
+<label class="check"><input id="autoSave" type="checkbox">自动保存 Claude 成果，并更新同一个文件</label><p class="hint">启用后当前对话的文件卡片自动保存到已选目录，无需点击下载。同一成果更新原文件；即使本地改过也直接更新，不备份、不另存、不弹版本选择。相同内容跳过。</p>
+<label class="check"><input id="writes" type="checkbox">允许修改文件</label><p class="hint">默认只能读取。开启后，Claude 可以在此文件夹内创建、修改、移动、删除文件和文件夹，无需逐次确认。删除默认进入系统回收站；永久删除需另外明确指定。</p>
+<section><h2>先确认文件数据怎样使用</h2><p>你要求读取的文件内容、文件名与工具结果会交给 Claude。启用 Cowork 后，还会经 Desktop Commander 的连接服务。作者没有独立收集服务器，不会自动上传诊断。</p><p>目录授权保存在本机当前系统用户下，不按 Claude 账号隔离。换账号前请暂停或撤销目录授权。每个浏览器个人资料需单独同意。</p><label class="check"><input id="dataConsent" type="checkbox">我已了解并同意上述文件数据处理。取消勾选立即停止新操作；已有文件与备份保留。</label></section>
+<details id="advancedFileSettings"><summary>高级文件设置</summary>
+<label class="check"><input id="expireBackups" type="checkbox">自动把过期归档备份移入系统回收站（默认关闭）</label><label>归档保留天数<input id="backupDays" type="number" min="7" max="3650" value="90"></label><p class="hint">只回收归档，不永久删除；未知结果不会自动重试。关闭时保留原副本。</p>
+<label class="check"><input id="preserveOutputDirs" type="checkbox">保留 Claude 输出目录结构（新成果生效）</label><p class="hint">默认关闭。开启后保留 outputs 内的相对子目录；已有成果仍更新原路径。</p>
+</details>
+<details id="coworkSettings"><summary>在 Cowork 中使用</summary>
+<label class="check"><input id="relay" type="checkbox">启用 Cowork 连接（实验性）</label><p class="hint">文件操作经第三方 Remote Desktop Commander 服务转交 Claude。首次使用需在 Claude 中启用此连接器并完成设备验证。设备显示在线仍不等于每次工具结果都能由该服务完整返回；结果缺失时不要重做文件操作；可按原调用编号查询已保留回执。短时网络中断会自动补发结果，不会再次修改文件。</p>
+<label class="check"><input id="keepCoworkOnline" type="checkbox">关闭 Claude 页面后保持 Cowork 在线（Chrome 运行期间）</label><p class="hint">开启后，只要 Chrome 运行且 Cowork 已启用，设备仍对 Cowork 保持在线。关闭此选项后，仅打开 Claude 页面时在线。</p>
+<div class="row"><button id="reauthorize" type="button">重新验证此设备（保留设备编号）</button><button id="reregister" type="button">作为新设备登记</button></div><p class="hint">登录记录损坏时可在这里恢复。新设备登记需要确认，旧登录记录改名保留，不删除。</p>
+<p id="currentRoute" class="hint"></p><div class="row"><button id="fixRoute" type="button" hidden>固定使用此代理</button><button id="newCode" type="button">重新获取验证码 / 重连</button></div>
+<div id="relayFields" hidden><label for="networkMode">本机程序怎样联网？</label><select id="networkMode"><option value="auto">自动寻找可用连接（推荐）</option><option value="proxy">使用本机代理（HTTP、HTTPS、SOCKS5）</option><option value="system">使用 VPN / TUN 系统网络</option></select>
+<p class="hint">自动方式读取现有本机 HTTP、HTTPS、混合或 SOCKS5 入口，每次重连重新检测；不限定代理软件或端口，不修改 VPN 设置，不查询公网 IP。找不到时停止，不自动直连。仅系统 VPN/TUN 的软件，可选择系统网络；SOCKS5 域名由代理解析，不在本机查询。</p><div id="proxySection"><label for="proxy">代理地址</label><input id="proxy" placeholder="例如 http://127.0.0.1:8080" autocomplete="off"><p class="hint">在代理软件中查看 HTTP 或混合端口。不要求 Clash 或全局模式；规则模式须让相关服务走代理。支持无账号的本机 HTTP、HTTPS、SOCKS5 入口。连接失败时停止，不自动直连。</p></div>
+<div id="systemSection" hidden><p class="hint">适用于接管本机程序的 VPN / TUN；分流时需包含 Node 程序。不自动读取 Chrome 代理或系统 HTTP 代理。请在 VPN 中开启断线保护。</p><label class="check"><input id="networkAccepted" type="checkbox">我已检查 VPN 路由和断线保护，理解连接成功不能证明真实 IP 已隐藏</label></div>
+<p class="hint">插件不会修改网络设置。Claude 网页和设备验证页的网络出口仍由浏览器或 VPN 决定。</p></div></details>
+<div class="row"><button id="save" type="submit" class="primary">保存设置</button><span id="saveState" role="status">正在读取设置…</span></div>
+</fieldset></form><p id="message" role="status"></p><button id="reloadExtension" type="button" hidden>重新加载已更新的插件</button>
+<section id="verification" hidden><h2>完成 Cowork 设备验证</h2><a id="verify" hidden target="_blank" rel="noopener noreferrer">打开设备验证页</a><p id="code"></p><p class="hint">完成后会自动更新状态，无需反复点击连接。</p></section>
+<section><h2>文件自动保存</h2><p id="autoStatus" role="status"></p><p><a href="workspace.html" target="_blank">更多工具：操作记录与历史恢复</a></p><details><summary>备用：手动保存一次下载</summary><p>平时点扩展图标即可操作，不必每次打开设置。先点“保存下一个下载文件”，再在 Claude 网页点击下载。</p><p class="hint">5 分钟内识别到的下一次 Claude 下载会复制到工作文件夹，采用本机分块处理和校验。原下载保留，同名另存；无需让 Claude 再写一遍内容。</p>
+<div class="row"><p><a href="workspace.html" target="_blank">打开文件工作台：批量保存、核对和恢复</a></p><button id="armDownload" class="primary">保存下一个下载文件</button><button id="cancelDownload" hidden>结束跟踪</button><button id="retryDownload" hidden>检查保存结果</button></div><p id="downloadStatus" role="status"></p><p id="downloadHelp" class="hint"></p><details id="downloadDetails" hidden><summary>查看操作编号</summary><p id="downloadOperation" class="hint"></p></details></details></section>
+<section><h2>遇到问题？</h2><p>导出版本、连接状态和最近操作数量，方便反馈。不包含文件正文、文件名、路径、代理地址或登录信息，不会自动上传。</p><button id="exportDiagnostics" type="button">预览诊断信息</button><p id="diagnosticStatus" role="status"></p><pre id="diagnosticPreview" class="diagnostic-preview" hidden></pre><button id="downloadDiagnostics" type="button" hidden>下载这份诊断信息</button></section>
+<details id="versionDetails"><summary>版本、安装位置与升级</summary><pre id="versionInfo" class="diagnostic-preview"></pre><p><button id="extensionsPage" type="button">打开当前扩展管理页</button> <a href="onboarding.html">查看安装和升级步骤</a></p><p class="hint">更新前先停用同类旧连接，例如“Claude 文件夹自动连接 1.0”，不要停用其他无关扩展。这里只说明操作，不自动卸载或修改其他扩展。</p></details>
+<details><summary>支持哪些 Claude 模式？</summary><p>支持网页 Chat；Cowork 为实验性，需要在对话启用连接器。目前不支持 Claude Code，包括网页 Code、终端 CLI 和 Remote Control。</p></details>
+<details class="more"><summary>使用范围与注意事项</summary><p class="hint">读取的内容会提供给 Claude。Cowork 还经过第三方 Desktop Commander 服务。请自行检查文件中的个人信息。回收失败不会改为永久删除；本扩展不提供执行系统命令的能力。</p><p class="hint">首次使用，请停用原 claudeFS 和旧辅助扩展，保留它们以便切回。Chat 网页桥已完成真实文件与成果保存验收；Cowork 当前按实验功能提供，第三方服务曾出现操作完成但结果正文未返回。macOS/Linux 尚未实机验收。</p></details>
+<details><summary>不同文件怎样处理？</summary><table><thead><tr><th>文件</th><th>处理方式</th></tr></thead><tbody><tr><td>文字、代码、CSV</td><td>按需要读取片段，多个替换一次提交。修改前保留恢复副本；可请 Claude 恢复某次修改。</td></tr><tr><td>Word、PPT</td><td>读取相关部分的文字。默认修改同一个文件，先保留恢复副本；也可明确另存。不调整版式、图片或图表。</td></tr><tr><td>Excel</td><td>读取单元格和已有计算缓存，不重新计算或修改公式、图表。</td></tr><tr><td>PNG、JPG、WebP</td><td>PNG/JPEG 大图自动生成预览，也能查看局部；原图保留。大 WebP 使用 Claude 附件，不用文字覆盖图片。</td></tr><tr><td>PDF、旧版 Office</td><td>保留格式复制、移动、下载保存或回收；内容编辑需用原应用或 Claude 附件。</td></tr></tbody></table><p class="hint">文本分块预览上限1 GiB、局部编辑64 MiB，新文字每次4 MiB；PNG/JPEG支持64 MiB、4000万像素。复制和下载保存采用本机分块处理，仍受时间和磁盘空间约束；Office文档上限256 MiB。恢复副本放在本机私有设置目录，不出现在工作文件夹中，也不随安装包分享；最多4 GiB或2000份，满后先整理再修改。</p></details>
+</main><script src="i18n-catalog.js"></script><script src="i18n.js"></script><script src="page-loader.js" data-scripts='["experience.js", "ui.js", "options.js"]'></script></body></html>

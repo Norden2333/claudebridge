@@ -1,0 +1,67 @@
+{
+  "claudeFS": {
+    "url": "https://github.com/vincentping/claudeFS",
+    "archiveSha256": "497c564c8be4a3f710290eba9693112ec34a345ec8af9175404f88edceabf302",
+    "commit": "0c5147c81447a4603deb5f9d961caa2eb7c1d67a",
+    "adaptedFiles": [
+      "core/bridge.js",
+      "core/bridge.isolated.js",
+      "adapters/claude/mcp/protocol.js",
+      "adapters/claude/content-main.js"
+    ]
+  },
+  "desktopCommander": {
+    "version": "0.2.52",
+    "source": "https://www.npmjs.com/package/@wonderwhy-er/desktop-commander",
+    "preAdaptationSha256": {
+      "device.js": "4023783ecbfc86d27663e9bb95f2007c5b778fb59bdae59797ba0cf441694cc4",
+      "device-authenticator.js": "cd709e8a0c14ddea27d117d73e3b88bf2846156a53d27f753061bdcfb265339e",
+      "remote-channel.js": "4c48a276b53183bb0753baa681d856016a367a1def295af605123036ce827ce0"
+    },
+    "changes": [
+      "generic device name",
+      "telemetry disabled",
+      "file executor replaced",
+      "verification link delivered via native IPC"
+    ]
+  },
+  "clawd": {
+    "repository": "https://github.com/rullerzhou-afk/clawd-on-desk",
+    "commit": "a5a0d1b432936fbf345b2f1eef38f8a7cb4099c5",
+    "license": "AGPL-3.0-only",
+    "files": [
+      {
+        "path": "LICENSE",
+        "sha256": "8486a10c4393cee1c25392769ddd3b2d6c242d6ec7928e1414efff7dfb2f07ef"
+      },
+      {
+        "path": "NOTICE.md",
+        "sha256": "b7ebe8961ca717458704389df857da4ff7f4538c12d7145012073bc97f082db5"
+      },
+      {
+        "path": "assets/svg/clawd-idle-living.svg",
+        "sha256": "f88a331ae9bd416aeded6aba50b95c1f5740f4da6077c929f5fbe6f4267ead77"
+      },
+      {
+        "path": "assets/svg/clawd-working-typing.svg",
+        "sha256": "c5427bd79f75470cb2cca517ed8a6bdb1b2ae19f287a7723d763720bc515971d"
+      },
+      {
+        "path": "assets/svg/clawd-error.svg",
+        "sha256": "ac829581d4f330eff38d86a50bc4ba100c2a2ba27d5add86142b11c49679e3f4"
+      },
+      {
+        "path": "assets/svg/clawd-happy.svg",
+        "sha256": "80b65cc97919f1fe89b8f1dc044e16cfb661a7918d2644e236c919fe743695ab"
+      },
+      {
+        "path": "assets/svg/clawd-sleeping.svg",
+        "sha256": "475c51b4f9d963c61e9c0eef97cffbe1642daf615a599e23d997125bfc4f11b1"
+      }
+    ],
+    "changes": [
+      "Only five checked inline SVG animations; no Electron renderer, hooks, telemetry, network or desktop integration included.",
+      "New state adapter follows existing local metadata."
+    ]
+  }
+}

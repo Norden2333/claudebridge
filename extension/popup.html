@@ -1,0 +1,9 @@
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><link rel="stylesheet" href="style.css"></head><body class="popup"><main>
+<p class="eyebrow">Claude 文件连接 · 0.6.0</p><h1>你的工作文件夹</h1>
+<p id="folderName" class="folder-name">尚未选择</p><p id="folderPath" class="hint path"></p><p id="permission" class="hint"></p>
+<div class="status-card" aria-live="polite"><p id="local">正在检查连接…</p><p id="remote"></p><p id="connectionHelp" class="hint"></p></div>
+<p id="autoStatus" role="status"></p><details><summary>更多工具与使用帮助</summary><p><a href="onboarding.html" target="_blank">安装、版本和连接检查</a></p><p><a href="workspace.html" target="_blank">操作记录与历史恢复</a></p><p>支持网页 Chat；Cowork 为实验性。不支持 Claude Code、CLI 和 Remote Control。</p></details><details><summary>备用：手动保存一次下载</summary><button id="armDownload" class="primary full">保存下一个下载文件</button><p id="downloadStatus" role="status"></p><p id="downloadHelp" class="hint"></p>
+<div class="row"><button id="cancelDownload" hidden>结束跟踪</button><button id="retryDownload" hidden>检查保存结果</button></div><details id="downloadDetails" hidden><summary>查看操作编号</summary><p id="downloadOperation" class="hint"></p></details></details>
+<p id="message" role="status"></p><div class="row"><button id="openClaude">打开 Claude</button><button id="settings">文件夹与设置</button></div>
+<p class="hint">打开 Claude 时自动连接，临时断网自动重连。实际读写在 Claude 中确认；重连不会重做文件操作。</p>
+</main><script src="i18n-catalog.js"></script><script src="i18n.js"></script><script src="page-loader.js" data-scripts='["experience.js", "ui.js", "popup.js"]'></script></body></html>

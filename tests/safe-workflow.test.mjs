@@ -1,0 +1,32 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';
+import {FileExecutor} from '../companion/files.mjs';import {workspaceAction} from '../companion/workspace.mjs';import {setupCheck,setupStatus} from '../companion/setup.mjs';import {explainError} from '../companion/errors.mjs';
+async function fixture(t){const base=await fs.mkdtemp(path.join(os.tmpdir(),'cfb-safe-work-'));t.after(()=>fs.rm(base,{recursive:true,force:true}));const folder=path.join(base,'folder');await fs.mkdir(folder);const ex=new FileExecutor({folder,allowWrites:true},{journalRoot:path.join(base,'state/operations')});return {base,folder,ex};}
+test('reference files remain readable/copyable while local/Cowork mutation, parent deletion and hosted protocol bypass are refused',async t=>{
+ const {folder,ex}=await fixture(t);await fs.mkdir(path.join(folder,'canon'));await fs.writeFile(path.join(folder,'canon/original.md'),'reference');await workspaceAction(ex,'workspace_protection_set',{paths:['canon/original.md']});
+ assert.equal((await ex.execute('read_file',{path:'canon/original.md'})).content,'reference');await ex.execute('copy_file',{source:'canon/original.md',destination:'copy.md'});
+ const other=new FileExecutor({folder,allowWrites:true},{journalRoot:ex.journal.root});await assert.rejects(other.execute('write_file',{path:'canon/original.md',content:'wrong'},{channel:'cowork'}),/仅供参考/);
+ await assert.rejects(ex.execute('delete_directory',{path:'canon',recursive:true}),/仅供参考/);await assert.rejects(ex.execute('move_file',{source:'canon',destination:'moved'}),/仅供参考/);
+ await assert.rejects(ex.execute('write_file',{path:'.claude-file-operation.json',content:JSON.stringify({protocol:'claude-folder-operation/v1',operation:'delete_file',path:'canon/original.md',confirmDelete:true})}),/仅供参考/);
+ await workspaceAction(ex,'workspace_protection_set',{paths:[]});await ex.execute('edit_block',{file_path:'canon/original.md',old_string:'reference',new_string:'allowed'});assert.equal(await fs.readFile(path.join(folder,'copy.md'),'utf8'),'reference');
+});
+test('ordered undo restores multiple edits and non-overwriting moves; changed or occupied files are not silently overwritten',async t=>{
+ const {folder,ex}=await fixture(t);await ex.execute('write_file',{path:'a.md',content:'original'});await ex.execute('read_file',{path:'a.md'});
+ const args={operations:[{tool:'edit_block',args:{file_path:'a.md',old_string:'original',new_string:'second'}},{tool:'edit_block',args:{file_path:'a.md',old_string:'second',new_string:'third'}}]};
+ const batch=await ex.execute('batch_operations',args,{operationId:'batch-edit-undo'});assert.equal(batch.completed,2);
+ const plan=await workspaceAction(ex,'workspace_undo_plan',{originalId:'batch-edit-undo'});assert.ok(plan.items.every(x=>x.canUndo));assert.deepEqual(plan.items[0].dependencies,[1]);
+ await assert.rejects(workspaceAction(ex,'workspace_undo_apply',{originalId:'batch-edit-undo',indices:[0],confirm:true,operationId:'undo-missing-step'}),/依赖/);
+ const undo=await workspaceAction(ex,'workspace_undo_apply',{originalId:'batch-edit-undo',indices:[0,1],confirm:true,operationId:'undo-all-edits'});assert.equal(undo.completed,2);assert.equal(await fs.readFile(path.join(folder,'a.md'),'utf8'),'original');
+ const again=await workspaceAction(ex,'workspace_undo_apply',{originalId:'batch-edit-undo',indices:[0,1],confirm:true,operationId:'undo-repeat-edits'});assert.ok(again.results.every(x=>x.alreadyUndone));
+ await ex.execute('move_file',{source:'a.md',destination:'b.md'},{operationId:'move-for-undo'});await workspaceAction(ex,'workspace_undo_apply',{originalId:'move-for-undo',indices:[0],confirm:true,operationId:'undo-the-move'});assert.equal(await fs.readFile(path.join(folder,'a.md'),'utf8'),'original');
+ await ex.execute('read_file',{path:'a.md'});await ex.execute('edit_block',{file_path:'a.md',old_string:'original',new_string:'edited'},{operationId:'edit-before-external'});await fs.writeFile(path.join(folder,'a.md'),'external');assert.equal((await workspaceAction(ex,'workspace_undo_plan',{originalId:'edit-before-external'})).items[0].canUndo,false);
+});
+test('move replacement undo restores both source and former destination; directory changes disable reversal',async t=>{
+ const {folder,ex}=await fixture(t);await ex.execute('write_file',{path:'source.md',content:'source'});await ex.execute('write_file',{path:'target.md',content:'target'});const old=await ex.execute('get_file_info',{path:'target.md',checksum:true});await ex.execute('read_file',{path:'source.md'});
+ await ex.execute('move_file',{source:'source.md',destination:'target.md',on_conflict:'replace',expected_destination_sha256:old.sha256},{operationId:'replace-move-undo'});
+ const r=await workspaceAction(ex,'workspace_undo_apply',{originalId:'replace-move-undo',indices:[0],confirm:true,operationId:'undo-replace-move'});assert.equal(r.completed,1);assert.equal(await fs.readFile(path.join(folder,'source.md'),'utf8'),'source');assert.equal(await fs.readFile(path.join(folder,'target.md'),'utf8'),'target');
+ await fs.mkdir(path.join(folder,'directory'));await fs.writeFile(path.join(folder,'directory/file.txt'),'before');await ex.execute('move_file',{source:'directory',destination:'moved-directory'},{operationId:'directory-move-undo'});assert.equal((await workspaceAction(ex,'workspace_undo_plan',{originalId:'directory-move-undo'})).items[0].canUndo,true);await fs.writeFile(path.join(folder,'moved-directory/file.txt'),'after');assert.equal((await workspaceAction(ex,'workspace_undo_plan',{originalId:'directory-move-undo'})).items[0].canUndo,false);
+});
+test('setup checks only create and clean their own temporary file; readonly validation and friendly error codes remain truthful',async t=>{
+ const {folder,ex}=await fixture(t);await fs.writeFile(path.join(folder,'keep.md'),'keep');const s=await setupStatus(ex,'0.3.0');assert.equal(s.folder.readable,true);assert.equal((await setupCheck(ex,false)).contentsRead,false);const checked=await setupCheck(ex,true);assert.equal(checked.cleaned,true);assert.deepEqual(await fs.readdir(folder),['keep.md']);ex.config.allowWrites=false;await assert.rejects(setupCheck(ex,true),/允许修改/);
+ assert.match(explainError({code:'ENOSPC',message:'private-path-secret'}),/空间不足/);assert.ok(!explainError({code:'EACCES',message:'private-path-secret'}).includes('private-path'));assert.match(explainError({code:'EBUSY',message:'x'}),/占用/);
+});

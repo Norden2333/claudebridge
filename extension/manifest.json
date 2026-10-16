@@ -1,0 +1,76 @@
+{
+  "manifest_version": 3,
+  "name": "Claude 文件连接 · 通用版",
+  "version": "0.6.0",
+  "description": "在自己选择的本机文件夹内读写，整合 claudeFS 网页接入与可选 Cowork 连接。",
+  "minimum_chrome_version": "120",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA+LUr05r+mHwoE3vID/3OahQfy9MPd4NMtJW6rVagAsg1QIE3rWASXiXIqO+cRangP/fn8pt3jTIoJm6KKI5aL6xfE6ZtW1brEy3seGipO661+wCVZNlgTbcX2KHHfYN6VgkkZRoY39r2JMOkJOvumO2MEUdwsTVcI84PrSAz8Uc0G7kuf7ethgDaBIVcJb1+uMcR8bH+tnBkN2Bk7DNMGpj9xTCwGChkH3/PpRqO3q5YPjVqmz+toEFXVipEWZTZm7G1BmH2htqA9Z5X4cgwGUtFpSfmUtYorVlIIegRm1T416G9FgsyVQHWZWzCwdTE70tv3o2f3hjuWydYRxfJdQIDAQAB",
+  "permissions": [
+    "nativeMessaging",
+    "alarms",
+    "downloads",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://claude.ai/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "128": "icon.png"
+    }
+  },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "bridge.js",
+        "tools.js",
+        "dispatch.js",
+        "protocol.js",
+        "content-main.js",
+        "asset-export.js"
+      ],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": [
+        "https://claude.ai/*"
+      ],
+      "js": [
+        "i18n-catalog.js",
+        "i18n.js",
+        "bridge-isolated.js",
+        "panel.js",
+        "pet-assets.js",
+        "pet.js",
+        "content-isolated.js",
+        "asset-observer.js"
+      ],
+      "run_at": "document_end",
+      "world": "ISOLATED"
+    }
+  ],
+  "optional_permissions": [
+    "notifications"
+  ],
+  "commands": {
+    "toggle-monitor": {
+      "suggested_key": {
+        "default": "Alt+Shift+F"
+      },
+      "description": "隐藏或显示 Claude 文件小窗"
+    }
+  },
+  "icons": {
+    "128": "icon.png"
+  },
+  "version_name": "0.6.0-reconnect.20261016-publish.20261017"
+}

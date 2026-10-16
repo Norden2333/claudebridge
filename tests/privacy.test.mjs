@@ -1,0 +1,8 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs/promises';import os from 'node:os';import path from 'node:path';import {privateUsage,purgePrivate} from '../companion/privacy.mjs';
+test('explicit selected permanent purge keeps settings, other private groups and working documents unchanged',async t=>{
+ const root=await fs.mkdtemp(path.join(os.tmpdir(),'cfb-private-purge-'));t.after(()=>fs.rm(root,{recursive:true,force:true}));const state=path.join(root,'state'),folder=path.join(root,'work');await fs.mkdir(folder);await fs.writeFile(path.join(folder,'formal.txt'),'synthetic document');
+ for(const name of ['backups','incoming','operations','updates','assets','ignored-assets','device']){await fs.mkdir(path.join(state,name),{recursive:true});await fs.writeFile(path.join(state,name,'fictional.txt'),'1234');}await fs.writeFile(path.join(state,'settings.json'),'preserved-settings');
+ const usage=await privateUsage(state);assert.equal(usage.totalBytes,28);await assert.rejects(purgePrivate(state,['backups']),/确认/);assert.equal((await privateUsage(state)).totalBytes,28);
+ const done=await purgePrivate(state,['backups','login'],{confirm:true,folders:[folder]});assert.equal(done.purged,true);assert.equal(done.deletedBytes,8);assert.equal(done.serverDeviceRevoked,false);assert.equal(await fs.readFile(path.join(state,'settings.json'),'utf8'),'preserved-settings');assert.equal(await fs.readFile(path.join(state,'incoming','fictional.txt'),'utf8'),'1234');assert.equal(await fs.readFile(path.join(folder,'formal.txt'),'utf8'),'synthetic document');
+ await assert.rejects(purgePrivate(state,['../work'],{confirm:true}),/选择/);assert.equal((await privateUsage(state)).totalBytes,20);
+});

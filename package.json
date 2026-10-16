@@ -1,0 +1,27 @@
+{
+  "name": "claude-folder-bridge",
+  "version": "0.6.0",
+  "private": true,
+  "type": "module",
+  "description": "Scoped cross-platform Claude folder bridge",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/*.test.mjs",
+    "installHost": "node companion/install.mjs",
+    "uninstallHost": "node companion/install.mjs --uninstall",
+    "updateHost": "node companion/install.mjs --update"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "2.117.2",
+    "undici": "6.29.0",
+    "@xmldom/xmldom": "0.8.15",
+    "jpeg-js": "0.4.4",
+    "pngjs": "7.0.0"
+  },
+  "license": "AGPL-3.0-only",
+  "stateSchema": 2,
+  "nativeProtocol": 1,
+  "buildLabel": "0.6.0-reconnect.20261016-publish.20261017"
+}
